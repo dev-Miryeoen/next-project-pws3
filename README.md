@@ -51,16 +51,16 @@ next-project-pws3/
 
 ## 1) 프로젝트 클론
 ```sh
-git clone https://github.com/yourname/next-project-pws3.git
+git clone https://github.com/dev-Miryeoen/next-project-pws3.git
 cd next-project-pws3
+```
 
-
-2) MySQL DB 생성
+## 2) MySQL DB 생성
 
 MySQL에 접속 후 아래 명령 실행:
-
+```
 SOURCE db/schema.sql;
-
+```
 
 그러면 아래 DB가 자동 생성됨:
 
@@ -68,26 +68,28 @@ Database: next_pws3
 
 Tables: users, vault_items
 
-3) .env 파일 생성
+## 3) .env 파일 생성
 
 아래 명령 실행:
-
+```
 cp .env.example .env
-
+```
 
 그리고 자신의 환경에 맞게 수정:
-
+```
 DB_USER=root
 DB_PASSWORD=yourpassword
 ENCRYPTION_SECRET=32bytes_hex_key
 JWT_SECRET=random_jwt_key
-
-4) 패키지 설치
+```
+## 4) 패키지 설치
+```
 npm install
-
-5) 개발 서버 실행
+```
+## 5) 개발 서버 실행
+```
 npm run dev
-
+```
 🔐 AES 암호화 관련 정보
 
 모든 저장되는 비밀번호는 다음 방식으로 암호화됩니다:
