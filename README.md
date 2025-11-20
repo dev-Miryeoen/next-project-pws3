@@ -35,15 +35,39 @@ Next.js + MySQL 기반 로컬 비밀번호 관리 서비스
 ---
 
 ## 📁 프로젝트 구조
+```
 next-project-pws3/
-├─ app/
-├─ db/
-│ └─ schema.sql
-├─ lib/
-├─ .env.example
-├─ README.md
-└─ package.json
-
+ ├─ app/
+ │   ├─ login/
+ │   │   └─ page.tsx
+ │   ├─ register/
+ │   │   └─ page.tsx
+ │   ├─ dashboard/
+ │   │   └─ page.tsx
+ │   ├─ api/
+ │   │   ├─ auth/
+ │   │   │   ├─ login/route.ts
+ │   │   │   └─ register/route.ts
+ │   │   ├─ vault/
+ │   │   │   ├─ create/route.ts
+ │   │   │   ├─ list/route.ts
+ │   │   │   ├─ item/[id]/route.ts
+ │   │   │   └─ delete/[id]/route.ts
+ │   └─ layout.tsx
+ │
+ ├─ lib/
+ │   ├─ db.ts             ← mysql2/promise 연결
+ │   ├─ crypto.ts         ← AES 암호화/복호화
+ │   └─ auth.ts           ← JWT 또는 세션 관리
+ │
+ ├─ db/
+ │   └─ schema.sql
+ │
+ ├─ .env
+ ├─ .env.example
+ ├─ README.md
+ └─ package.json
+```
 
 ---
 
@@ -55,13 +79,19 @@ git clone https://github.com/dev-Miryeoen/next-project-pws3.git
 cd next-project-pws3
 ```
 
-## 2) MySQL DB 생성
+## 2) MySQL DB 생성 및 유저생성
 
 MySQL에 접속 후 아래 명령 실행:
 ```
 SOURCE db/schema.sql;
 ```
-
+pws_user와 pws_pass에 사용할 유저명과 비밀번호를 설정
+```
+CREATE USER 'pws_user'@'localhost' IDENTIFIED BY 'pws_pass';
+GRANT ALL PRIVILEGES ON next_pws3.* TO 'pws_user'@'localhost';
+FLUSH PRIVILEGES;
+exit;
+```
 그러면 아래 DB가 자동 생성됨:
 
 Database: next_pws3
@@ -71,14 +101,15 @@ Tables: users, vault_items
 ## 3) .env 파일 생성
 
 아래 명령 실행:
+- powershell
 ```
-cp .env.example .env
+copy .env.example .env
 ```
 
 그리고 자신의 환경에 맞게 수정:
 ```
-DB_USER=root
-DB_PASSWORD=yourpassword
+DB_USER=pws_user
+DB_PASSWORD=pws_pass
 ENCRYPTION_SECRET=32bytes_hex_key
 JWT_SECRET=random_jwt_key
 ```
