@@ -15,13 +15,14 @@ next-project-pws3는 Next.js와 MySQL 기반으로 제작된<br />
 랜덤 256bit AES key<br />
 서버 관리자도 평문을 모름<br />
 DB에는 다음 3개만 저장됨:<br />
-wrapped_data_key (AES-GCM으로 암호화된 dataKey)<br />
+wrapped_data_key (AES-256-GCM으로 암호화된 dataKey)<br />
 wrapped_data_key_iv<br />
-master_salt (Argon2 KDF용)
+master_salt (PBKDF용)
 
 ### 🔒 2) 사용자 마스터 키(User Master Password)
-Argon2id KDF를 통해 dataKey 복구<br />
-dataKey로 개별 비밀번호 AES-GCM 암호화<br />
+PBKDF2-HMAC-SHA256 기반 KDF로 dataKey 파생 및 복구<br />
+(충분히 큰 iteration, salt(master_salt) 사용)<br />
+dataKey로 개별 비밀번호 AES-256-GCM 암호화<br />
 마스터 비밀번호는 절대 서버에 저장되지 않음
 
 ### 🔁 3) 복구키(Recovery Key)
@@ -99,15 +100,18 @@ https://dev.mysql.com/downloads/installer/
 
 설치 시 아래 옵션 선택:<br />
 MySQL Server<br />
-MySQL Workbench (선택)
+MySQL Workbench (선택)<br />
+🔐설치시 설정한 root 비밀번호는 반드시 기억해주세요!🔐
 
 ## 🧰 2. MySQL 실행 후 데이터베이스 생성
 MySQL 접속
 ```
-mysql -u root -p
+mysql -uroot -p
+#(설치시 설정한 root 비밀번호입력)
 ```
-DB + User 생성
+DB + User 생성:
 ```
+#(pws_user와 pws_pass부분은 db사용자의 id와 pw로 임의로 변경가능)
 CREATE DATABASE next_pws3 CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE USER 'pws_user'@'localhost' IDENTIFIED BY 'pws_pass';
@@ -129,7 +133,7 @@ SOURCE db/schema.sql;
 | email                        | VARCHAR  | 사용자 이메일                  |
 | username                     | VARCHAR  | 닉네임                      |
 | password                     | VARCHAR  | bcrypt 해시된 로그인 비밀번호      |
-| master_salt                  | VARCHAR  | Argon2 KDF용 salt         |
+| master_salt                  | VARCHAR  | PBKDF2 KDF용 salt |
 | wrapped_data_key             | TEXT     | 서버 마스터키로 암호화된 dataKey    |
 | wrapped_data_key_iv          | VARCHAR  | 해당 암호화에 사용된 IV (AES-GCM) |
 | wrapped_data_key_recovery    | TEXT     | 복구키 기반 암호화된 dataKey      |
@@ -157,19 +161,52 @@ SOURCE db/schema.sql;
 | created_at    | DATETIME | 세션 생성 시각  |
 | last_activity | DATETIME | 마지막 요청 시각 |
 
-## ⚙️ 환경 변수 설정 (.env)
-루트 위치에 .env 파일 생성:
+mysql에서 빠져나오기
+```
+exit
+```
+
+## 📄 환경 변수 설정 안내 (.env / .env.example)
+
+프로젝트에는 실제 민감 정보가 포함된 .env 파일을 GitHub에 업로드하면 안 됩니다.
+대신, 예시 템플릿 파일인 .env.example 이 포함되어 있어
+사용자가 자신의 환경에 맞게 .env를 직접 생성할 수 있습니다.
+
+아래 과정을 따라 .env 파일을 준비해 주세요.
+
+### 📌 1) .env.example 파일을 .env로 복사
+프로젝트를 클론한 후 루트 디렉토리에서 아래 명령을 실행합니다:
+▶ Windows (PowerShell)
+```
+copy .env.example .env
+```
+▶ Windows (CMD)
+```
+copy .env.example .env
+```
+▶ macOS / Linux
+```
+cp .env.example .env
+```
+
+### 📌 2) .env 파일 내용 수정
+복사된 .env 파일을 열고 pws_user, pws_pass 값을<br />
+자신에게 맞는 값(이전에 설정한 pws_user, pws_pass부분)으로 교체합니다:
 ```
 DB_HOST=localhost
+DB_PORT=3306
 DB_USER=pws_user
 DB_PASSWORD=pws_pass
-DB_DATABASE=next_pws3
+DB_NAME=next_pws3
+```
+## ⚠️ 주의:
+.env는 절대 GitHub 등에 업로드하면 안 됩니다.
+.env.example만 저장소에 포함되며, 예시 형식만 제공됩니다.
 
-# 서버 마스터 키 (절대로 외부유출 금지)
-SERVER_MASTER_KEY=HEX_32_BYTES
-
-# 세션 지속시간 설정 (ms)
-SESSION_DURATION=300000
+### 📌 3) 서버 재시작
+.env 내용을 변경한 후에는 개발 서버를 반드시 재시작해야 적용됩니다.
+```
+npm run dev
 ```
 
 ## 📦 설치 & 실행
@@ -189,7 +226,7 @@ http://localhost:3000
 ## 🔐 현재 보안 수준 요약
 | 항목               | 상태       | 설명                          |
 | ---------------- | -------- | --------------------------- |
-| 비밀번호 저장          | 🔥 최고 수준 | AES-256-GCM + Argon2id KDF  |
+| 비밀번호 저장 | 🔥 높은 수준 | AES-256-GCM + PBKDF2-HMAC-SHA256 KDF |
 | 마스터 비밀번호 저장      | ❌ 저장 안 함 | 서버는 절대 사용자 마스터키를 모름         |
 | 데이터키(dataKey) 보호 | 🔥 2중 보호 | 서버마스터키 + 사용자마스터키            |
 | 복구 기능            | ✔️ 지원    | 복구키 있으면 계정 복구 가능            |
@@ -198,7 +235,6 @@ http://localhost:3000
 | CSRF 대응          | strong   | 인증은 HttpOnly Cookie + 세션 ID |
 
 ## 🏁 마무리
-
 이 프로젝트는 학습용이지만,<br />
 구조적으로는 실제 패스워드 매니저(LastPass · 1Password)와 유사한<br />
 Zero-Knowledge 기반 암호화 설계를 따릅니다.
