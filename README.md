@@ -2,47 +2,47 @@
 Local Password Manager — Next.js + MySQL 기반 안전한 비밀번호 관리 서비스
 
 # 📌 프로젝트 소개
-next-project-pws3는 Next.js와 MySQL 기반으로 제작된
+next-project-pws3는 Next.js와 MySQL 기반으로 제작된<br />
 완전한 로컬 비밀번호 관리 프로그램(Local Password Manager) 입니다.
 
-이 프로젝트는 웹사이트 비밀번호를 안전하게 저장하고,
-사용자가 입력한 마스터 비밀번호 기반 AES-256 암호화 구조로
+이 프로젝트는 웹사이트 비밀번호를 안전하게 저장하고,<br />
+사용자가 입력한 마스터 비밀번호 기반 AES-256 암호화 구조로<br />
 절대 평문 비밀번호가 서버에 저장되지 않도록 설계되었습니다.
 
 # 🔥 핵심 특징
 ## ✔️ 1. 2중 보안 암호화 구조
 ### 🔑 1) 서버 마스터 키(Server Master Key)
-랜덤 256bit AES key
-서버 관리자도 평문을 모름
-DB에는 다음 3개만 저장됨:
-wrapped_data_key (AES-GCM으로 암호화된 dataKey)
-wrapped_data_key_iv
+랜덤 256bit AES key<br />
+서버 관리자도 평문을 모름<br />
+DB에는 다음 3개만 저장됨:<br />
+wrapped_data_key (AES-GCM으로 암호화된 dataKey)<br />
+wrapped_data_key_iv<br />
 master_salt (Argon2 KDF용)
 
 ### 🔒 2) 사용자 마스터 키(User Master Password)
-Argon2id KDF를 통해 dataKey 복구
-dataKey로 개별 비밀번호 AES-GCM 암호화
+Argon2id KDF를 통해 dataKey 복구<br />
+dataKey로 개별 비밀번호 AES-GCM 암호화<br />
 마스터 비밀번호는 절대 서버에 저장되지 않음
 
-### 🔁 복구키(Recovery Key)
-사용자가 초기 가입 시 랜덤으로 생성됨
-서버 마스터 키로 암호화된 형태로 저장
+### 🔁 3) 복구키(Recovery Key)
+사용자가 초기 가입 시 랜덤으로 생성됨<br />
+서버 마스터 키로 암호화된 형태로 저장<br />
 사용자 마스터 비밀번호를 잃어버려도 복구키만 있으면 복구 가능
 
 ## ✔️ 2. 보안 강화된 세션 시스템
-MySQL 기반 세션 저장소
-서버가 세션 유효시간을 직접 판단
-클라이언트는 1초 단위 UI 타이머 / 10초 단위 서버 동기화
-세션 만료 시 즉시 강제 로그아웃
+MySQL 기반 세션 저장소<br />
+서버가 세션 유효시간을 직접 판단<br />
+클라이언트는 1초 단위 UI 타이머 / 10초 단위 서버 동기화<br />
+세션 만료 시 즉시 강제 로그아웃<br />
 “연장하기” 버튼으로 5분 연장 가능
 
 ## ✔️ 3. 기능 구성
-회원가입 / 로그인 / 로그아웃
-마스터키 + 복구키 기반 보안 시스템
-비밀번호 생성, 수정, 삭제 (CRUD)
-마스터 비밀번호 입력 시 복호화 기능
-비밀번호 보기 시 10초 자동 삭제 표시(SecurePasswordView)
-Dark Mode 지원
+회원가입 / 로그인 / 로그아웃<br />
+마스터키 + 복구키 기반 보안 시스템<br />
+비밀번호 생성, 수정, 삭제 (CRUD)<br />
+마스터 비밀번호 입력 시 복호화 기능<br />
+비밀번호 보기 시 10초 자동 삭제 표시(SecurePasswordView)<br />
+Dark Mode 지원<br />
 컴포넌트 기반 분리 (유지보수성 향상)
 
 # 🗂 프로젝트 구조
@@ -94,13 +94,11 @@ next-project-pws3/
 # 🧱 MySQL 설치 및 DB 준비
 ## 📥 1. MySQL 다운로드(MySQL이 이미 있으시다면 2번으로)
 
-Windows 기준
+Windows 기준<br />
 https://dev.mysql.com/downloads/installer/
 
-설치 시 아래 옵션 선택:
-
-MySQL Server
-
+설치 시 아래 옵션 선택:<br />
+MySQL Server<br />
 MySQL Workbench (선택)
 
 ## 🧰 2. MySQL 실행 후 데이터베이스 생성
@@ -201,6 +199,6 @@ http://localhost:3000
 
 ## 🏁 마무리
 
-이 프로젝트는 학습용이지만,
-구조적으로는 실제 패스워드 매니저(LastPass · 1Password)와 유사한
+이 프로젝트는 학습용이지만,<br />
+구조적으로는 실제 패스워드 매니저(LastPass · 1Password)와 유사한<br />
 Zero-Knowledge 기반 암호화 설계를 따릅니다.
